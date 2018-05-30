@@ -1,12 +1,60 @@
-<div class="geoposition-widget" data-map-widget-height="{{ config.map_widget_height }}" data-map-options="{{ config.map_options }}" data-marker-options="{{ config.marker_options }}">
+<div class="geoposition-widget" data-map-widget-height="{{ config.map_widget_height }}" data-map-options="{{ config.map_options }}"
+    data-marker-options="{{ config.marker_options }}">
     <table>
         <tr>
             <td>{{ latitude.label|capfirst }}</td>
-            <td>{{ latitude.html }}</td>
+            <td>
+                {% if latitude.widget %} {% include latitude.widget.template_name with widget=latitude.widget %} {% else %} {{ latitude.html
+                }} {% endif %}
+            </td>
         </tr>
         <tr>
             <td>{{ longitude.label|capfirst }}</td>
-            <td>{{ longitude.html }}</td>
+            <td>
+                {% if longitude.widget %} {% include longitude.widget.template_name with widget=longitude.widget %} {% else %} {{ longitude.html
+                }} {% endif %}
+            </td>
         </tr>
+        <tr>
+            <td><input type="button" onClick="getLocation()" value="Get Location"></td>
+        </tr>
+        <script>
+            function getLocation(e) {
+                    navigator.geolocation.getCurrentPosition(showPosition);
+                    
+
+            }
+            function showPosition(position) {
+                let lat  = document.querySelector("#id_position_0")
+                let long  = document.querySelector("#id_position_1")
+                lat.value =   position.coords.latitude
+                long.value = position.coords.longitude
+                
+                let map = new google.maps.Map(document.querySelector(".geoposition-map"))
+                var center = new google.maps.LatLng(lat.value, long.value);
+                let markerOptions = {map: map, position: center}
+                
+                let marker = new google.maps.Marker(markerOptions);
+                
+                console.log(map, center)
+                map.setCenter(center);
+                map.setZoom(15);
+                marker.setPosition(center);
+                doGeocode_2(marker)
+            }
+
+            function doGeocode_2(marker) {
+                var gc = new google.maps.Geocoder();
+                let addressRow = document.querySelector(".geoposition-address")
+                gc.geocode({
+                    'latLng': marker.position
+                }, function(results, status) {
+                    addressRow.innerHTML = '';
+                    if (results && results[0]) {
+                        addressRow.innerHTML = results[0].formatted_address;
+                    }
+                });
+            }
+        </script>
     </table>
 </div>
